@@ -558,20 +558,26 @@ const ServicePage = () => {
                         timestamp: Timestamp.now(),
                       };
 
-                      const firestorePromise = addDoc(collection(db, "Service"), serviceData);
-                      const rtdbPromise = set(push(ref(realtimeDb, "Service")), {
-                        ...serviceData,
-                        timestamp: Date.now(),
-                      });
+                      // Primary write: Cloud Firestore 'Service' collection
+                      await addDoc(collection(db, "Service"), serviceData);
 
-                      await Promise.all([firestorePromise, rtdbPromise]);
+                      // Secondary write: Realtime Database 'Service' node
+                      try {
+                        await set(push(ref(realtimeDb, "Service")), {
+                          ...serviceData,
+                          timestamp: Date.now(),
+                        });
+                      } catch (rtdbErr) {
+                        console.warn("Realtime Database permission notice:", rtdbErr.message);
+                      }
+
+                      setBookingSuccess(true);
                     } catch (err) {
                       console.error("Firebase Service submission error:", err);
+                      alert("Failed to submit consultation request. Please check your network and try again.");
                     } finally {
                       setIsSubmitting(false);
                     }
-
-                    setBookingSuccess(true);
                   }}
                   className="space-y-4"
                 >
