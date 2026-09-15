@@ -148,7 +148,7 @@ const MarketingServices = () => {
           timestamp: Date.now(),
         });
       } catch (rtdbErr) {
-        console.warn("Realtime Database permission notice:", rtdbErr.message);
+        console.warn("Realtime Database secondary write failed:", rtdbErr?.message || rtdbErr);
       }
 
       setIsSubmitted(true);
